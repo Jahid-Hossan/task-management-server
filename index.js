@@ -5,7 +5,14 @@ const port = process.env.PORT || 5000;
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
-app.use(cors());
+app.use(cors({
+    origin: [
+        "http://localhost:5174",
+        "http://localhost:5173",
+        "https://task-manager-82059.web.app",
+        "https://task-manager-82059.firebaseapp.com/"
+    ]
+}));
 app.use(express.json());
 
 
@@ -47,8 +54,29 @@ async function run() {
             }
         })
 
-        app.patch('/todo', async (req, res) => {
+        app.patch('/todo/:id', async (req, res) => {
+            try {
 
+                const id = req.params.id;
+                const item = req.body;
+                console.log(id)
+                const filter = { _id: new ObjectId(id) }
+                const updatedDoc = {
+                    $set: {
+                        title: item.title,
+                        description: item.description,
+                        priority: item.priority,
+                        deadline: item.deadline,
+                        status: item.status,
+                    }
+                }
+
+                console.log(item)
+                const result = await todoCollection.updateOne(filter, updatedDoc)
+                res.send(result);
+            } catch (error) {
+                console.log(error)
+            }
         })
 
         app.delete('/todo/:id', async (req, res) => {
